@@ -1,0 +1,27 @@
+.glass-card, .glass-button, .glass-input, .glass-small {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.glass-button {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.2);
+}
+
+.glass-modal .modal-content {
+  background: linear-gradient(135deg, rgba(20, 27, 47, 0.8) 0%, rgba(10, 15, 27, 0.8) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

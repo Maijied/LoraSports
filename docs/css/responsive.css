@@ -1,0 +1,29 @@
+@media (max-width: 768px) {
+  .header-title { font-size: 24px; }
+  .dashboard-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .stats-panel { grid-template-columns: 1fr 1fr; }
+  .prediction-controls { grid-template-columns: 1fr; gap: 0.75rem; }
+  .predict-vs { display: none; }
+}
+
+@media (max-width: 480px) {
+  .header { padding: 0.75rem; }
+  .header-title { font-size: 18px; }
+  .install-btn { display: none !important; }
+  .main-content { padding: 0.75rem; }
+  .dashboard-grid { gap: 0.75rem; }
+  .match-card { padding: 0.75rem; }
+  .match-card__body { grid-template-columns: 1fr; gap: 0.5rem; }
+  .section-header { flex-direction: column; align-items: flex-start; }
+  .glass-input, .glass-button { width: 100%; }
+  .stats-panel { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@media (min-width: 1200px) {
+  .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
+  .prediction-wide { grid-column: 1 / -1; }
+}
