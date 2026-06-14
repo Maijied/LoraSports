@@ -486,6 +486,12 @@ function renderTournamentOdds() {
 /* Init                                                                 */
 /* ─────────────────────────────────────────────────────────────────── */
 async function init() {
+  console.log('LW26: Init started');
+  // Visual debug
+  const debugBar = document.createElement('div');
+  debugBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:2px;background:#00ff88;z-index:9999;';
+  document.body.appendChild(debugBar);
+
   els = {
     tabs:            document.querySelectorAll('.lw-tab'),
     panels:          document.querySelectorAll('.lw-panel'),
@@ -511,8 +517,10 @@ async function init() {
 
   if (!bindAPI()) {
     console.error('LW26: API or Predict modules not found');
+    debugBar.style.background = '#ff3d5a'; // Red for fail
     return;
   }
+  debugBar.style.background = '#00d4ff'; // Cyan for success
 
   // Attach tab listeners
   els.tabs.forEach(t => {
