@@ -54,6 +54,7 @@
   let predict, tournamentOdds;
 
   function bindAPI() {
+    document.body.style.borderTop = '5px solid #00ff88'; // Visible indicator
     const api = window.LW26API;
     const pre = window.LW26Predict;
     if (!api || !pre) return false;
@@ -569,6 +570,10 @@ async function init() {
   }, 60_000);
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 })();
