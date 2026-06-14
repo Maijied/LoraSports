@@ -525,14 +525,15 @@ async function init() {
     { weekday: 'short', month: 'short', day: 'numeric' });
   setUpdateTime();
 
-  // TODAY — fetch live, fallback to hardcoded
-  try {
-    const matches = await fetchLiveMatches();
+  // TODAY — render fallback first, then try live
+  renderToday(TODAY_MATCHES);
+  
+  fetchLiveMatches().then(matches => {
     state.liveMatches = matches;
     renderToday(matches);
-  } catch {
+  }).catch(() => {
     renderToday(TODAY_MATCHES);
-  }
+  });
 
   // SCHEDULE
   buildScheduleFilter();
@@ -543,13 +544,14 @@ async function init() {
 
   // RESULTS + STANDINGS
   buildStandingsSelector();
-  try {
-    state.standings = await fetchGroupStandings();
-  } catch {
-    state.standings = generateStandings();
-  }
+  state.standings = generateStandings();
   renderStandings();
   renderResults();
+
+  fetchGroupStandings().then(s => {
+    state.standings = s;
+    renderStandings();
+  }).catch(() => {});
 
   // PREDICT
   populateTeamSelects();
