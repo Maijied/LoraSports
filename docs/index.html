@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lorapok WorldCup 26 — Firefox Extension</title>
+  <meta name="description" content="FIFA World Cup 2026 live scores, fixtures, squads & ELO predictions. A Lorapok Labs Firefox extension."/>
+  <meta property="og:title" content="Lorapok WorldCup 26"/>
+  <meta property="og:description" content="The Tactician's Logbook — World Cup 2026 in your Firefox toolbar."/>
+  <meta property="og:image" content="https://lorapok.github.io/worldcup26/preview.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Tokens ────────────────────────────────────────────────── */
+    :root {
+      --bg:        #030711;
+      --surface:   #080f20;
+      --card:      #0c1a35;
+      --border:    #1a2e4a;
+      --green:     #00ff88;
+      --cyan:      #00d4ff;
+      --gold:      #d4a843;
+      --red:       #ff3d5a;
+      --parchment: #c8b97a;
+      --ink:       #7a8fa8;
+      --serif:     'Playfair Display SC', Georgia, serif;
+      --mono:      'Space Mono', monospace;
+      --body:      'Lora', Georgia, serif;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: #d0d8e8;
+      font-family: var(--body);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { color: #fff; }
+
+    /* ── Pitch BG ──────────────────────────────────────────────── */
+    .pitch-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(0,255,136,0.025) 80px),
+        repeating-linear-gradient(180deg, transparent, transparent 79px, rgba(0,255,136,0.02) 80px);
+    }
+    .pitch-bg::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px; height: 500px;
+      border: 1px solid rgba(0,255,136,0.06);
+      border-radius: 50%;
+    }
+    .pitch-bg::after {
+      content: '';
+      position: absolute; top: 50%; left: 0; right: 0;
+      height: 1px; background: rgba(0,255,136,0.06);
+      transform: translateY(-50%);
+    }
+
+    /* ── Layout ────────────────────────────────────────────────── */
+    .container {
+      position: relative; z-index: 1;
+      max-width: 960px; margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ══ NAV ════════════════════════════════════════════════════ */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(3,7,17,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px; max-width: 960px; margin: 0 auto;
+    }
+    .nav-logo {
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      color: var(--green); letter-spacing: 2px;
+      text-shadow: 0 0 8px var(--green);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-logo span { color: var(--cyan); }
+    .nav-links {
+      display: flex; gap: 24px; list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      color: var(--ink); letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+
+    /* ══ HERO ════════════════════════════════════════════════════ */
+    .hero {
+      padding: 80px 24px 60px;
+      text-align: center;
+      position: relative; z-index: 1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero__eyebrow {
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      color: var(--green); letter-spacing: 4px;
+      text-shadow: 0 0 10px rgba(0,255,136,0.5);
+      margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .hero__eyebrow::before,
+    .hero__eyebrow::after {
+      content: '';
+      display: block; width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green));
+    }
+    .hero__eyebrow::after { transform: scaleX(-1); }
+
+    .hero__ball {
+      font-size: 72px; display: block; margin-bottom: 16px;
+      animation: heroBounce 3s cubic-bezier(.36,.07,.19,.97) infinite;
+      filter: drop-shadow(0 0 20px rgba(0,255,136,0.4));
+    }
+    @keyframes heroBounce {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      20%     { transform: translateY(-24px) rotate(30deg); }
+      40%     { transform: translateY(0) rotate(55deg); }
+      60%     { transform: translateY(-12px) rotate(75deg); }
+      80%     { transform: translateY(0) rotate(90deg); }
+    }
+
+    .hero__title {
+      font-family: var(--serif); font-size: clamp(36px, 7vw, 68px);
+      font-weight: 900; color: #e8e0c8; line-height: 1.05;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+      margin-bottom: 8px;
+    }
+    .hero__title em {
+      font-style: normal; color: var(--gold);
+      text-shadow: 0 0 20px rgba(212,168,67,0.5);
+    }
+
+    .hero__sub {
+      font-family: var(--mono); font-size: 13px;
+      color: var(--ink); letter-spacing: 3px;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+
+    .hero__desc {
+      font-family: var(--body); font-size: 16px; font-style: italic;
+      color: #9aaec4; max-width: 500px; margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .hero__ctas {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 12px 24px; border-radius: 4px;
+      border: none; cursor: pointer;
+      transition: all 0.25s ease; text-decoration: none;
+    }
+    .btn--primary {
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      color: #030711;
+    }
+    .btn--primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,255,136,0.35);
+      color: #030711;
+    }
+    .btn--ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--ink);
+    }
+    .btn--ghost:hover {
+      border-color: var(--cyan); color: var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    /* ══ STATS STRIP ════════════════════════════════════════════ */
+    .stats-strip {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+    .stats-inner {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      max-width: 960px; margin: 0 auto;
+    }
+    .stat {
+      padding: 20px 16px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat__num {
+      font-family: var(--mono); font-size: 28px; font-weight: 700;
+      color: var(--green); display: block;
+      text-shadow: 0 0 12px rgba(0,255,136,0.4);
+    }
+    .stat__label {
+      font-family: var(--mono); font-size: 8px; color: var(--ink);
+      letter-spacing: 2px; text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* ══ FEATURES ════════════════════════════════════════════════ */
+    .section {
+      padding: 64px 24px;
+      position: relative; z-index: 1;
+    }
+
+    .section__header {
+      text-align: center; margin-bottom: 48px;
+    }
+    .section__tag {
+      font-family: var(--mono); font-size: 9px; font-weight: 700;
+      color: var(--cyan); letter-spacing: 3px;
+      text-transform: uppercase; margin-bottom: 10px; display: block;
+    }
+    .section__title {
+      font-family: var(--serif); font-size: 32px; font-weight: 700;
+      color: var(--parchment); line-height: 1.2;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 24px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      border-color: rgba(0,255,136,0.35);
+      transform: translateY(-3px);
+    }
+    /* Logbook ruled lines */
+    .feature-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        180deg, transparent, transparent 23px,
+        rgba(255,255,255,0.02) 24px
+      );
+      pointer-events: none;
+    }
+    .feature-card__icon {
+      font-size: 32px; display: block; margin-bottom: 12px;
+      filter: drop-shadow(0 0 8px rgba(0,255,136,0.3));
+    }
+    .feature-card__title {
+      font-family: var(--serif); font-size: 14px; font-weight: 700;
+      color: var(--parchment); margin-bottom: 8px; letter-spacing: 0.5px;
+    }
+    .feature-card__desc {
+      font-family: var(--body); font-size: 12px; color: #8090a8;
+      line-height: 1.6;
+    }
+    .feature-card__tag {
+      margin-top: 12px; display: inline-block;
+      font-family: var(--mono); font-size: 8px; font-weight: 700;
+      letter-spacing: 1px; padding: 2px 7px; border-radius: 3px;
+    }
+    .tag--green { color: var(--green); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); }
+    .tag--cyan  { color: var(--cyan);  background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); }
+    .tag--gold  { color: var(--gold);  background: rgba(212,168,67,0.1);border: 1px solid rgba(212,168,67,0.2); }
+    .tag--red   { color: var(--red);   background: rgba(255,61,90,0.1); border: 1px solid rgba(255,61,90,0.2); }
+
+    /* ══ PREVIEW MOCKUP ════════════════════════════════════════ */
+    .preview-section {
+      padding: 0 24px 64px;
+      position: relative; z-index: 1;
+      text-align: center;
+    }
+
+    .popup-mockup {
+      display: inline-block;
+      width: 400px; max-width: 100%;
+      background: #080f20;
+      border: 1px solid #1a2e4a;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(0,255,136,0.1),
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 60px rgba(0,255,136,0.06);
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .mock-header {
+      background: #080f20;
+      border-bottom: 1px solid #1a2e4a;
+      padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px;
+      position: relative;
+    }
+    .mock-header::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, #00ff88, transparent);
+      opacity: 0.3;
+    }
+    .mock-ball { font-size: 26px; animation: heroBounce 2.4s infinite; }
+    .mock-brand-center { flex: 1; text-align: center; }
+    .mock-brand {
+      font-family: var(--mono); font-size: 8px; font-weight: 700;
+      color: var(--green); letter-spacing: 2px;
+      text-shadow: 0 0 6px var(--green);
+    }
+    .mock-brand span { color: var(--cyan); text-shadow: 0 0 6px var(--cyan); }
+    .mock-title {
+      font-family: var(--serif); font-size: 14px; font-weight: 700;
+      color: #e8e0c8; display: block;
+    }
+    .mock-title em { font-style: normal; color: var(--gold); }
+    .mock-live {
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(255,61,90,0.12);
+      border: 1px solid #ff3d5a; border-radius: 3px;
+      padding: 2px 6px;
+    }
+    .mock-live-dot {
+      width: 5px; height: 5px; background: #ff3d5a; border-radius: 50%;
+      animation: livePulse 1s infinite;
+    }
+    @keyframes livePulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+    .mock-live-text {
+      font-family: var(--mono); font-size: 7px; font-weight: 700;
+      color: #ff3d5a; letter-spacing: 1px;
+    }
+
+    .mock-tabs {
+      display: flex; background: #080f20;
+      border-bottom: 1px solid #1a2e4a;
+    }
+    .mock-tab {
+      flex: 1; padding: 7px 2px 5px; text-align: center;
+      border-right: 1px solid #1a2e4a;
+      font-family: var(--mono); font-size: 6px; font-weight: 700;
+      color: #7a8fa8; letter-spacing: 0.5px;
+    }
+    .mock-tab:last-child { border-right: none; }
+    .mock-tab.active { color: var(--green); background: rgba(0,255,136,0.05); }
+    .mock-tab-icon { display: block; font-size: 11px; margin-bottom: 2px; }
+
+    .mock-content { padding: 10px 12px; }
+    .mock-section-title {
+      font-family: var(--serif); font-size: 10px; color: var(--parchment);
+      padding-bottom: 5px; border-bottom: 1px solid #1a2e4a;
+      margin-bottom: 8px; position: relative;
+    }
+    .mock-section-title::after {
+      content: ''; position: absolute; bottom: -1px; left: 0;
+      width: 36px; height: 1px; background: var(--green);
+    }
+
+    .mock-match {
+      background: #0c1a35; border: 1px solid #1a2e4a; border-radius: 6px;
+      padding: 8px 9px; margin-bottom: 5px; position: relative; overflow: hidden;
+    }
+    .mock-match.live {
+      border-color: rgba(255,61,90,0.4);
+      background: rgba(255,61,90,0.04);
+    }
+    .mock-match::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        180deg, transparent, transparent 11px,
+        rgba(255,255,255,0.02) 12px
+      );
+    }
+    .mock-meta {
+      display: flex; justify-content: space-between; margin-bottom: 5px;
+    }
+    .mock-group {
+      font-family: var(--mono); font-size: 7px; font-weight: 700;
+      color: var(--green); background: rgba(0,255,136,0.1);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-radius: 3px; padding: 1px 4px; letter-spacing: 0.5px;
+    }
+    .mock-status-live {
+      font-family: var(--mono); font-size: 7px; font-weight: 700;
+      color: #ff3d5a;
+    }
+    .mock-status-live::before { content: '● '; animation: livePulse 1s infinite; }
+    .mock-status-sched {
+      font-family: var(--mono); font-size: 7px; color: #7a8fa8;
+    }
+    .mock-body {
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px;
+    }
+    .mock-team { display: flex; align-items: center; gap: 4px; }
+    .mock-team.away { flex-direction: row-reverse; }
+    .mock-flag { font-size: 13px; }
+    .mock-name { font-family: var(--body); font-size: 10px; font-weight: 600; color: #c8d4e0; }
+    .mock-score {
+      background: rgba(0,0,0,0.3); border: 1px solid #1a2e4a;
+      border-radius: 4px; padding: 3px 7px; text-align: center;
+      min-width: 52px;
+    }
+    .mock-score.live { border-color: rgba(255,61,90,0.4); }
+    .mock-score-num {
+      font-family: var(--mono); font-size: 16px; font-weight: 700; color: #e8f0f8;
+    }
+    .mock-score-sep { font-family: var(--mono); font-size: 10px; color: #7a8fa8; }
+    .mock-score-time {
+      font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--gold);
+      display: block;
+    }
+    .mock-score-label {
+      font-family: var(--mono); font-size: 6px; color: #7a8fa8; letter-spacing: 1px;
+    }
+    .mock-venue {
+      font-family: var(--body); font-style: italic; font-size: 8px; color: #7a8fa8;
+      text-align: center; margin-top: 5px; padding-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .mock-footer {
+      background: #080f20; border-top: 1px solid #1a2e4a;
+      padding: 5px 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .mock-footer-logo {
+      font-family: var(--mono); font-size: 7px; font-weight: 700;
+      color: var(--green); letter-spacing: 1.5px;
+    }
+    .mock-footer-motto {
+      font-family: var(--body); font-style: italic; font-size: 7px; color: #7a8fa8;
+    }
+
+    /* ══ INSTALL STEPS ════════════════════════════════════════════ */
+    .install-section {
+      padding: 64px 24px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 0; max-width: 600px; margin: 0 auto; }
+
+    .step {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+
+    .step__num {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      color: var(--green);
+    }
+    .step__content {}
+    .step__title {
+      font-family: var(--serif); font-size: 14px; font-weight: 700;
+      color: var(--parchment); margin-bottom: 4px;
+    }
+    .step__desc {
+      font-family: var(--body); font-size: 12px; color: #8090a8; line-height: 1.6;
+    }
+    .step__desc code {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--cyan); background: rgba(0,212,255,0.1);
+      padding: 1px 5px; border-radius: 3px;
+    }
+
+    /* ══ AMO BADGE ════════════════════════════════════════════════ */
+    .amo-section {
+      padding: 48px 24px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .amo-badge {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px 24px;
+      font-family: var(--body); font-size: 14px; color: #9aaec4;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .amo-badge:hover { border-color: rgba(0,255,136,0.3); }
+    .amo-badge__icon { font-size: 32px; }
+    .amo-badge__title {
+      font-family: var(--serif); font-size: 14px;
+      color: var(--parchment); display: block; margin-bottom: 2px;
+    }
+    .amo-badge__sub {
+      font-family: var(--mono); font-size: 9px; color: var(--green);
+      letter-spacing: 1px;
+    }
+
+    /* ══ FOOTER ═══════════════════════════════════════════════════ */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      position: relative; z-index: 1;
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: var(--mono); font-size: 14px; font-weight: 700;
+      color: var(--green); letter-spacing: 3px;
+      text-shadow: 0 0 10px var(--green);
+      display: block; margin-bottom: 8px;
+    }
+    .footer-motto {
+      font-family: var(--body); font-style: italic; font-size: 14px;
+      color: var(--ink); margin-bottom: 20px; display: block;
+    }
+    .footer-links {
+      display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+      font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+    .footer-copy {
+      font-family: var(--mono); font-size: 9px; color: #3a4a5a;
+      letter-spacing: 1px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(2) { border-right: none; }
+      .nav-links { display: none; }
+      .popup-mockup { width: 340px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pitch grid watermark -->
+  <div class="pitch-bg" aria-hidden="true"></div>
+
+  <!-- ══ NAV ═══════════════════════════════════════════════════════ -->
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-logo">◈ LORAPOK<span>·LABS</span></div>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="https://github.com/lorapok/worldcup26" target="_blank">GitHub ↗</a></li>
+        <li><a href="https://lorapok.github.io" target="_blank">Labs ↗</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ══ HERO ══════════════════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero__eyebrow">LORAPOK LABS PRESENTS</div>
+    <span class="hero__ball">⚽</span>
+    <h1 class="hero__title">WORLD CUP <em>2026</em></h1>
+    <p class="hero__sub">The Tactician's Logbook — Firefox Extension</p>
+    <p class="hero__desc">
+      Live scores, group fixtures, national squads, and ELO-powered match predictions —
+      all in one polished Firefox toolbar popup.
+    </p>
+    <div class="hero__ctas">
+      <a href="https://github.com/lorapok/worldcup26/releases/latest" class="btn btn--primary">
+        ⬇️ Download Extension
+      </a>
+      <a href="https://github.com/lorapok/worldcup26" class="btn btn--ghost">
+        ⭐ Star on GitHub
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ STATS STRIP ══════════════════════════════════════════════ -->
+  <div class="stats-strip">
+    <div class="stats-inner">
+      <div class="stat">
+        <span class="stat__num">48</span>
+        <span class="stat__label">Teams</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">12</span>
+        <span class="stat__label">Groups</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">104</span>
+        <span class="stat__label">Matches</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">5</span>
+        <span class="stat__label">Live Tabs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FEATURES ════════════════════════════════════════════════ -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__tag">What's Inside</span>
+        <h2 class="section__title">Five Panels. One Click.</h2>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-card__icon">⚽</span>
+          <div class="feature-card__title">Today's Matches</div>
+          <p class="feature-card__desc">
+            Live scores auto-refreshing every 60 seconds via ESPN's public API,
+            with fallback to accurate match data when offline.
+          </p>
+          <span class="feature-card__tag tag--red">LIVE</span>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card__icon">📅</span>
+          <div class="feature-card__title">Full Schedule</div>
+          <p class="feature-card__desc">
+            All 104 fixtures across 12 groups filterable by group letter.
+            Kickoff times, venues, and phase clearly labelled.
+          </p>
+          <span class="feature-card__tag tag--cyan">FIXTURES</span>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card__icon">🏴</span>
+          <div class="feature-card__title">National Squads</div>
+          <p class="feature-card__desc">
+            Browse all 48 national squads. Search by team name, view the
+            full 23-man roster with positions, shirt numbers, and clubs.
+          </p>
+          <span class="feature-card__tag tag--green">48 SQUADS</span>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card__icon">📊</span>
+          <div class="feature-card__title">Group Standings</div>
+          <p class="feature-card__desc">
+            Live standings for all 12 groups — points, goal difference,
+            wins, draws, losses — with qualification zone highlighted.
+          </p>
+          <span class="feature-card__tag tag--gold">STANDINGS</span>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card__icon">🎯</span>
+          <div class="feature-card__title">ELO Predictions</div>
+          <p class="feature-card__desc">
+            Pick any two nations and get win/draw/loss probabilities,
+            a predicted scoreline, and a 16-team tournament odds table —
+            all powered by the ELO rating system.
+          </p>
+          <span class="feature-card__tag tag--cyan">ELO ENGINE</span>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card__icon">🎨</span>
+          <div class="feature-card__title">Logbook Design</div>
+          <p class="feature-card__desc">
+            Dark leather logbook aesthetic with Lorapok neon accents, pitched-field
+            watermarks, ruled-line card textures, and animated football elements.
+          </p>
+          <span class="feature-card__tag tag--green">LORAPOK STYLE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ POPUP MOCKUP ════════════════════════════════════════════ -->
+  <section class="preview-section">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__tag">Preview</span>
+        <h2 class="section__title">The Popup</h2>
+      </div>
+
+      <div class="popup-mockup">
+        <!-- Mock header -->
+        <div class="mock-header">
+          <div class="mock-ball">⚽</div>
+          <div class="mock-brand-center">
+            <div class="mock-brand">LORAPOK <span>· LABS</span></div>
+            <span class="mock-title">WORLD CUP <em>2026</em></span>
+          </div>
+          <div class="mock-live">
+            <div class="mock-live-dot"></div>
+            <span class="mock-live-text">LIVE</span>
+          </div>
+        </div>
+        <!-- Mock tabs -->
+        <div class="mock-tabs">
+          <div class="mock-tab active"><span class="mock-tab-icon">⚽</span>TODAY</div>
+          <div class="mock-tab"><span class="mock-tab-icon">📅</span>SCHEDULE</div>
+          <div class="mock-tab"><span class="mock-tab-icon">🏴</span>SQUADS</div>
+          <div class="mock-tab"><span class="mock-tab-icon">📊</span>RESULTS</div>
+          <div class="mock-tab"><span class="mock-tab-icon">🎯</span>PREDICT</div>
+        </div>
+        <!-- Mock content -->
+        <div class="mock-content">
+          <div class="mock-section-title">Matchday &nbsp; Jun 15</div>
+
+          <!-- Live match -->
+          <div class="mock-match live">
+            <div class="mock-meta">
+              <span class="mock-group">GRP H</span>
+              <span class="mock-status-live">67'</span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-team"><span class="mock-flag">🇵🇹</span><span class="mock-name">Portugal</span></div>
+              <div class="mock-score live">
+                <span class="mock-score-num">2</span>
+                <span class="mock-score-sep"> – </span>
+                <span class="mock-score-num">1</span>
+              </div>
+              <div class="mock-team away"><span class="mock-flag">🇭🇷</span><span class="mock-name">Croatia</span></div>
+            </div>
+            <div class="mock-venue">📍 AT&T Stadium</div>
+          </div>
+
+          <!-- Live match 2 -->
+          <div class="mock-match live">
+            <div class="mock-meta">
+              <span class="mock-group">GRP H</span>
+              <span class="mock-status-live">34'</span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-team"><span class="mock-flag">🇳🇬</span><span class="mock-name">Nigeria</span></div>
+              <div class="mock-score live">
+                <span class="mock-score-num">0</span>
+                <span class="mock-score-sep"> – </span>
+                <span class="mock-score-num">0</span>
+              </div>
+              <div class="mock-team away"><span class="mock-flag">🇪🇬</span><span class="mock-name">Egypt</span></div>
+            </div>
+            <div class="mock-venue">📍 Rose Bowl</div>
+          </div>
+
+          <!-- Scheduled -->
+          <div class="mock-match">
+            <div class="mock-meta">
+              <span class="mock-group">GRP G</span>
+              <span class="mock-status-sched">15:00</span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-team"><span class="mock-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span><span class="mock-name">England</span></div>
+              <div class="mock-score">
+                <span class="mock-score-time">15:00</span>
+                <span class="mock-score-label">KO</span>
+              </div>
+              <div class="mock-team away"><span class="mock-flag">🇳🇱</span><span class="mock-name">Netherlands</span></div>
+            </div>
+            <div class="mock-venue">📍 Gillette Stadium</div>
+          </div>
+        </div>
+        <!-- Mock footer -->
+        <div class="mock-footer">
+          <span class="mock-footer-logo">◈ LORAPOK LABS</span>
+          <span class="mock-footer-motto">Building the Future. One Line at a Time.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ INSTALL ══════════════════════════════════════════════════ -->
+  <section class="install-section" id="install">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__tag">Get Started</span>
+        <h2 class="section__title">Install in 3 Steps</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step__num">1</div>
+          <div class="step__content">
+            <div class="step__title">Download the Extension</div>
+            <p class="step__desc">
+              Grab the latest <code>.zip</code> from the
+              <a href="https://github.com/lorapok/worldcup26/releases/latest">GitHub Releases</a> page,
+              or install directly from the Firefox Add-ons store once approved.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step__num">2</div>
+          <div class="step__content">
+            <div class="step__title">Open Firefox Debugging</div>
+            <p class="step__desc">
+              Navigate to <code>about:debugging</code> → <strong>This Firefox</strong>
+              → <strong>Load Temporary Add-on</strong>. Point it at
+              <code>manifest.json</code> inside the extracted folder.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step__num">3</div>
+          <div class="step__content">
+            <div class="step__title">Click the ⚽ Icon</div>
+            <p class="step__desc">
+              The Lorapok WorldCup 26 icon appears in your Firefox toolbar.
+              Click it to open the Tactician's Logbook — all five panels
+              are ready to go, no sign-in required.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ AMO ══════════════════════════════════════════════════════ -->
+  <section class="amo-section">
+    <div class="container">
+      <a href="https://addons.mozilla.org" class="amo-badge" target="_blank">
+        <span class="amo-badge__icon">🦊</span>
+        <div>
+          <span class="amo-badge__title">Firefox Add-ons Store</span>
+          <span class="amo-badge__sub">COMING SOON · UNDER REVIEW</span>
+        </div>
+      </a>
+      <p style="font-family:var(--body);font-size:13px;color:var(--ink);margin-top:8px;">
+        Automated CI/CD publishes every release to AMO via <code style="font-family:var(--mono);font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.1);padding:1px 5px;border-radius:3px;">web-ext sign</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ═════════════════════════════════════════════════ -->
+  <footer>
+    <span class="footer-logo">◈ LORAPOK LABS</span>
+    <span class="footer-motto">Building the Future. One Line at a Time.</span>
+    <div class="footer-links">
+      <a href="https://lorapok.github.io">lorapok.github.io</a>
+      <a href="https://github.com/lorapok">@lorapok</a>
+      <a href="https://github.com/Maijied">@Maijied</a>
+      <a href="https://github.com/lorapok/worldcup26">Source Code</a>
+    </div>
+    <p class="footer-copy">© 2026 LORAPOK LABS · OPEN SOURCE · MIT LICENSE</p>
+  </footer>
+
+</body>
+</html>
