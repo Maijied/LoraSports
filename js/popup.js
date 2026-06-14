@@ -12,29 +12,6 @@
   const $ = id => document.getElementById(id);
   const $q = sel => document.querySelector(sel);
 
-  const els = {
-    tabs:            document.querySelectorAll('.lw-tab'),
-    panels:          document.querySelectorAll('.lw-panel'),
-    liveBadge:       $('liveBadge'),
-    updateTime:      $('updateTime'),
-    todayDate:       $('todayDate'),
-    todayLoader:     $('todayLoader'),
-    todayMatches:    $('todayMatches'),
-    scheduleFilter:  $('scheduleGroupFilter'),
-    scheduleList:    $('scheduleList'),
-    teamGrid:        $('teamGrid'),
-    squadSearch:     $('squadSearch'),
-    squadDetail:     $('squadDetail'),
-    standingsGroup:  $('standingsGroupSelector'),
-    standingsTable:  $('standingsTable'),
-    resultsList:     $('resultsList'),
-    predictHome:     $('predictHome'),
-    predictAway:     $('predictAway'),
-    runPredict:      $('runPredict'),
-    predictResult:   $('predictResult'),
-    tournamentOdds:  $('tournamentOdds'),
-  };
-
   /* ─────────────────────────────────────────────────────────────────── */
   /* State                                                                */
   /* ─────────────────────────────────────────────────────────────────── */
@@ -45,6 +22,8 @@
     liveMatches:    [],
     standings:      {},
   };
+
+  let els = {};
 
   // Late-bound constants from API module
   let FLAGS, WC26_GROUPS, TEAM_RATINGS, SQUADS,
@@ -117,10 +96,6 @@ function switchTab(tab) {
     p.classList.toggle('active', p.id === `panel-${tab}`);
   });
 }
-
-els.tabs.forEach(t => {
-  t.addEventListener('click', () => switchTab(t.dataset.tab));
-});
 
 /* ─────────────────────────────────────────────────────────────────── */
 /* TODAY panel                                                          */
@@ -339,8 +314,6 @@ function closeSquad() {
   els.squadSearch.closest('.lw-squad-search').style.display = 'block';
 }
 
-els.squadSearch.addEventListener('input', e => renderTeamGrid(e.target.value));
-
 /* ─────────────────────────────────────────────────────────────────── */
 /* RESULTS panel                                                        */
 /* ─────────────────────────────────────────────────────────────────── */
@@ -509,16 +482,48 @@ function renderTournamentOdds() {
     </div>`).join('');
 }
 
-els.runPredict.addEventListener('click', renderPrediction);
-
 /* ─────────────────────────────────────────────────────────────────── */
 /* Init                                                                 */
 /* ─────────────────────────────────────────────────────────────────── */
 async function init() {
+  els = {
+    tabs:            document.querySelectorAll('.lw-tab'),
+    panels:          document.querySelectorAll('.lw-panel'),
+    liveBadge:       $('liveBadge'),
+    updateTime:      $('updateTime'),
+    todayDate:       $('todayDate'),
+    todayLoader:     $('todayLoader'),
+    todayMatches:    $('todayMatches'),
+    scheduleFilter:  $('scheduleGroupFilter'),
+    scheduleList:    $('scheduleList'),
+    teamGrid:        $('teamGrid'),
+    squadSearch:     $('squadSearch'),
+    squadDetail:     $('squadDetail'),
+    standingsGroup:  $('standingsGroupSelector'),
+    standingsTable:  $('standingsTable'),
+    resultsList:     $('resultsList'),
+    predictHome:     $('predictHome'),
+    predictAway:     $('predictAway'),
+    runPredict:      $('runPredict'),
+    predictResult:   $('predictResult'),
+    tournamentOdds:  $('tournamentOdds'),
+  };
+
   if (!bindAPI()) {
     console.error('LW26: API or Predict modules not found');
     return;
   }
+
+  // Attach tab listeners
+  els.tabs.forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+  });
+
+  // Attach predictor listener
+  els.runPredict.addEventListener('click', renderPrediction);
+
+  // Attach squad search listener
+  els.squadSearch.addEventListener('input', e => renderTeamGrid(e.target.value));
 
   // Header date
   const now = new Date();
