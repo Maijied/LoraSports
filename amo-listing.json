@@ -1,0 +1,52 @@
+{
+  "guid": "worldcup26@lorapok.labs",
+  "slug": "lorapok-worldcup26",
+  "default_locale": "en-US",
+
+  "name": {
+    "en-US": "Lorapok WorldCup 26"
+  },
+
+  "summary": {
+    "en-US": "FIFA World Cup 2026 live scores, fixtures, squads & ELO predictions — all in your Firefox toolbar. A Lorapok Labs product."
+  },
+
+  "description": {
+    "en-US": "<h3>⚽ The Tactician's Logbook</h3><p>Lorapok WorldCup 26 puts the entire 2026 FIFA World Cup at your fingertips in a polished, dark logbook-themed Firefox popup.</p><h4>Five panels, one click:</h4><ul><li><strong>TODAY</strong> — Live match scores that auto-refresh every 60 seconds via the ESPN public API. A pulsing LIVE badge appears when games are in progress.</li><li><strong>SCHEDULE</strong> — All upcoming group-stage fixtures for all 12 groups. Filter by group (A–L) and see kickoff times and venues at a glance.</li><li><strong>SQUADS</strong> — Browse all 48 national squads. Search by country name, tap a tile to view the full 23-man roster with shirt numbers, positions, and club teams.</li><li><strong>RESULTS</strong> — Group standings for all 12 groups with real-time points tables, goal difference, and qualification zone highlighting. Recent match results shown below.</li><li><strong>PREDICT</strong> — Pick any two nations and get an ELO-based win/draw/loss probability bar, a predicted scoreline, and a 16-team tournament winner odds table.</li></ul><h4>Design</h4><p>Built on the Lorapok Labs design system: near-black backgrounds, neon green and electric cyan accents, Playfair Display SC headings, Space Mono labels, and logbook-style ruled-line card textures with animated football elements.</p><h4>Data</h4><p>Live scores from the ESPN public API with hardcoded 2026 group-stage data as offline fallback. No account required. No data collected.</p><p><a href='https://lorapok.github.io/worldcup26'>Homepage</a> · <a href='https://github.com/lorapok/worldcup26'>Source Code</a> · <a href='https://lorapok.github.io'>Lorapok Labs</a></p>"
+  },
+
+  "homepage": {
+    "en-US": "https://lorapok.github.io/worldcup26"
+  },
+
+  "support_url": {
+    "en-US": "https://github.com/lorapok/worldcup26/issues"
+  },
+
+  "support_email": "hello@lorapok.labs",
+
+  "categories": {
+    "firefox": ["sports-games", "news-weather"]
+  },
+
+  "tags": [
+    "football", "soccer", "world-cup", "2026", "fifa",
+    "live-scores", "sports", "schedule", "predictions"
+  ],
+
+  "is_experimental": false,
+  "requires_payment": false,
+  "contributions_url": null,
+
+  "version": {
+    "license": "MIT",
+    "release_notes": {
+      "en-US": "Initial release — live scores, group standings, squad browser, fixture schedule, and ELO match predictions for FIFA World Cup 2026."
+    },
+    "approval_notes": "This extension fetches live scores from the ESPN public API (no key required) and displays World Cup 2026 data in a Firefox popup. All five tab panels (Today, Schedule, Squads, Results, Predict) are functional. The extension requires no permissions beyond storage and alarms for background caching. No user data is collected or transmitted."
+  },
+
+  "privacy_policy": {
+    "en-US": "Lorapok WorldCup 26 does not collect, store, or transmit any personal data. The extension fetches publicly available sports data from the ESPN public API solely to display World Cup match information. All cached data is stored locally in your browser using the WebExtensions storage API and is never shared with any third party."
+  }
+}

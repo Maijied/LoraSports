@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "name": "Lorapok WorldCup 26",
+  "version": "1.0.0",
+  "description": "FIFA World Cup 2026 live scores, schedule, squads & predictions. A Lorapok Labs product.",
+  "author": "Lorapok Labs — lorapok.github.io",
+  "homepage_url": "https://lorapok.github.io",
+
+  "icons": {
+    "48":  "icons/icon-48.png",
+    "96":  "icons/icon-96.png"
+  },
+
+  "browser_action": {
+    "default_popup":  "popup.html",
+    "default_title":  "Lorapok WorldCup 26",
+    "default_icon": {
+      "48":  "icons/icon-48.png",
+      "96":  "icons/icon-96.png"
+    }
+  },
+
+  "background": {
+    "scripts": ["js/background.js"],
+    "persistent": false
+  },
+
+  "permissions": [
+    "storage",
+    "alarms",
+    "https://site.api.espn.com/*"
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "worldcup26@lorapok.labs",
+      "strict_min_version": "91.0"
+    }
+  }
+}

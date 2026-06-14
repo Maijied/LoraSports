@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lorapok WorldCup 26</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/popup.css"/>
+</head>
+<body>
+
+  <!-- ╔══ HEADER ══════════════════════════════════════════════════════╗ -->
+  <header class="lw-header">
+    <div class="lw-header__pitch-lines" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="lw-header__left">
+      <div class="lw-ball" aria-hidden="true">
+        <div class="lw-ball__inner">⚽</div>
+        <div class="lw-ball__shadow"></div>
+      </div>
+    </div>
+
+    <div class="lw-header__center">
+      <div class="lw-brand">
+        <span class="lw-brand__lorapok">LORAPOK</span>
+        <span class="lw-brand__dot">·</span>
+        <span class="lw-brand__labs">LABS</span>
+      </div>
+      <h1 class="lw-title">WORLD CUP <em>2026</em></h1>
+      <p class="lw-subtitle">Official Tournament Dashboard</p>
+    </div>
+
+    <div class="lw-header__right">
+      <div class="lw-live-badge" id="liveBadge" style="display:none">
+        <span class="lw-live-badge__dot"></span>
+        <span class="lw-live-badge__text">LIVE</span>
+      </div>
+      <div class="lw-update-time" id="updateTime"></div>
+    </div>
+  </header>
+
+  <!-- ╔══ TAB NAV ══════════════════════════════════════════════════════╗ -->
+  <nav class="lw-tabs" role="tablist">
+    <button class="lw-tab active" data-tab="today" role="tab" aria-selected="true">
+      <span class="lw-tab__icon">⚽</span>
+      <span class="lw-tab__label">TODAY</span>
+    </button>
+    <button class="lw-tab" data-tab="schedule" role="tab" aria-selected="false">
+      <span class="lw-tab__icon">📅</span>
+      <span class="lw-tab__label">SCHEDULE</span>
+    </button>
+    <button class="lw-tab" data-tab="squads" role="tab" aria-selected="false">
+      <span class="lw-tab__icon">🏴</span>
+      <span class="lw-tab__label">SQUADS</span>
+    </button>
+    <button class="lw-tab" data-tab="results" role="tab" aria-selected="false">
+      <span class="lw-tab__icon">📊</span>
+      <span class="lw-tab__label">RESULTS</span>
+    </button>
+    <button class="lw-tab" data-tab="predict" role="tab" aria-selected="false">
+      <span class="lw-tab__icon">🎯</span>
+      <span class="lw-tab__label">PREDICT</span>
+    </button>
+  </nav>
+
+  <!-- ╔══ CONTENT PANELS ═══════════════════════════════════════════════╗ -->
+  <main class="lw-content">
+
+    <!-- ── TODAY ─────────────────────────────────────────────────── -->
+    <div class="lw-panel active" id="panel-today" role="tabpanel">
+      <div class="lw-panel__header">
+        <span class="lw-panel__title">Matchday</span>
+        <span class="lw-panel__date" id="todayDate"></span>
+      </div>
+      <div class="lw-loader" id="todayLoader">
+        <div class="lw-loader__ball"></div>
+        <span>Fetching live data…</span>
+      </div>
+      <div id="todayMatches" class="lw-matches"></div>
+    </div>
+
+    <!-- ── SCHEDULE ───────────────────────────────────────────────── -->
+    <div class="lw-panel" id="panel-schedule" role="tabpanel">
+      <div class="lw-panel__header">
+        <span class="lw-panel__title">Upcoming Fixtures</span>
+        <div class="lw-group-filter" id="scheduleGroupFilter"></div>
+      </div>
+      <div id="scheduleList" class="lw-matches"></div>
+    </div>
+
+    <!-- ── SQUADS ─────────────────────────────────────────────────── -->
+    <div class="lw-panel" id="panel-squads" role="tabpanel">
+      <div class="lw-panel__header">
+        <span class="lw-panel__title">National Squads</span>
+      </div>
+      <div class="lw-squad-search">
+        <input type="text" id="squadSearch" class="lw-input" placeholder="🔍  Search team…" autocomplete="off"/>
+      </div>
+      <div class="lw-team-grid" id="teamGrid"></div>
+      <div class="lw-squad-detail" id="squadDetail" style="display:none"></div>
+    </div>
+
+    <!-- ── RESULTS ────────────────────────────────────────────────── -->
+    <div class="lw-panel" id="panel-results" role="tabpanel">
+      <div class="lw-panel__header">
+        <span class="lw-panel__title">Group Standings</span>
+        <div class="lw-group-selector" id="standingsGroupSelector"></div>
+      </div>
+      <div id="standingsTable" class="lw-standings"></div>
+      <div class="lw-panel__header" style="margin-top:12px">
+        <span class="lw-panel__title">Recent Results</span>
+      </div>
+      <div id="resultsList" class="lw-matches"></div>
+    </div>
+
+    <!-- ── PREDICT ────────────────────────────────────────────────── -->
+    <div class="lw-panel" id="panel-predict" role="tabpanel">
+      <div class="lw-panel__header">
+        <span class="lw-panel__title">Match Predictor</span>
+        <span class="lw-badge lw-badge--ai">ELO</span>
+      </div>
+
+      <div class="lw-predict-custom">
+        <div class="lw-predict-select-wrap">
+          <label class="lw-predict-label">HOME</label>
+          <select id="predictHome" class="lw-select"></select>
+        </div>
+        <div class="lw-predict-vs">VS</div>
+        <div class="lw-predict-select-wrap">
+          <label class="lw-predict-label">AWAY</label>
+          <select id="predictAway" class="lw-select"></select>
+        </div>
+      </div>
+      <button class="lw-btn lw-btn--predict" id="runPredict">
+        ⚡ CALCULATE PREDICTION
+      </button>
+      <div id="predictResult" class="lw-predict-result"></div>
+
+      <div class="lw-panel__header" style="margin-top:14px">
+        <span class="lw-panel__title">Tournament Odds</span>
+      </div>
+      <div id="tournamentOdds" class="lw-odds-list"></div>
+    </div>
+
+  </main>
+
+  <!-- ╔══ FOOTER ═══════════════════════════════════════════════════════╗ -->
+  <footer class="lw-footer">
+    <div class="lw-footer__left">
+      <span class="lw-footer__logo">◈ LORAPOK LABS</span>
+    </div>
+    <div class="lw-footer__center">
+      <span class="lw-footer__motto">Building the Future. One Line at a Time.</span>
+    </div>
+    <div class="lw-footer__right">
+      <a href="https://lorapok.github.io" target="_blank" class="lw-footer__link">lorapok.github.io</a>
+    </div>
+  </footer>
+
+  <!-- Pitch watermark -->
+  <div class="lw-pitch-watermark" aria-hidden="true">
+    <div class="lw-pitch-watermark__circle"></div>
+    <div class="lw-pitch-watermark__center"></div>
+    <div class="lw-pitch-watermark__spot"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/predictions.js"></script>
+  <script src="js/popup.js"></script>
+</body>
+</html>
