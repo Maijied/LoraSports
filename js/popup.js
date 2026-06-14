@@ -5,51 +5,74 @@
 
 'use strict';
 
-const { FLAGS, WC26_GROUPS, TEAM_RATINGS, SQUADS,
-        TODAY_MATCHES, SCHEDULE, PAST_RESULTS,
-        fetchLiveMatches, fetchGroupStandings, generateStandings } = window.LW26API;
+(function() {
+  /* ─────────────────────────────────────────────────────────────────── */
+  /* DOM refs                                                             */
+  /* ─────────────────────────────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+  const $q = sel => document.querySelector(sel);
 
-const { predict, tournamentOdds } = window.LW26Predict;
+  const els = {
+    tabs:            document.querySelectorAll('.lw-tab'),
+    panels:          document.querySelectorAll('.lw-panel'),
+    liveBadge:       $('liveBadge'),
+    updateTime:      $('updateTime'),
+    todayDate:       $('todayDate'),
+    todayLoader:     $('todayLoader'),
+    todayMatches:    $('todayMatches'),
+    scheduleFilter:  $('scheduleGroupFilter'),
+    scheduleList:    $('scheduleList'),
+    teamGrid:        $('teamGrid'),
+    squadSearch:     $('squadSearch'),
+    squadDetail:     $('squadDetail'),
+    standingsGroup:  $('standingsGroupSelector'),
+    standingsTable:  $('standingsTable'),
+    resultsList:     $('resultsList'),
+    predictHome:     $('predictHome'),
+    predictAway:     $('predictAway'),
+    runPredict:      $('runPredict'),
+    predictResult:   $('predictResult'),
+    tournamentOdds:  $('tournamentOdds'),
+  };
 
-/* ─────────────────────────────────────────────────────────────────── */
-/* DOM refs                                                             */
-/* ─────────────────────────────────────────────────────────────────── */
-const $ = id => document.getElementById(id);
-const $q = sel => document.querySelector(sel);
+  /* ─────────────────────────────────────────────────────────────────── */
+  /* State                                                                */
+  /* ─────────────────────────────────────────────────────────────────── */
+  let state = {
+    activeTab:      'today',
+    scheduleGroup:  'ALL',
+    standingsGroup: 'A',
+    liveMatches:    [],
+    standings:      {},
+  };
 
-const els = {
-  tabs:            document.querySelectorAll('.lw-tab'),
-  panels:          document.querySelectorAll('.lw-panel'),
-  liveBadge:       $('liveBadge'),
-  updateTime:      $('updateTime'),
-  todayDate:       $('todayDate'),
-  todayLoader:     $('todayLoader'),
-  todayMatches:    $('todayMatches'),
-  scheduleFilter:  $('scheduleGroupFilter'),
-  scheduleList:    $('scheduleList'),
-  teamGrid:        $('teamGrid'),
-  squadSearch:     $('squadSearch'),
-  squadDetail:     $('squadDetail'),
-  standingsGroup:  $('standingsGroupSelector'),
-  standingsTable:  $('standingsTable'),
-  resultsList:     $('resultsList'),
-  predictHome:     $('predictHome'),
-  predictAway:     $('predictAway'),
-  runPredict:      $('runPredict'),
-  predictResult:   $('predictResult'),
-  tournamentOdds:  $('tournamentOdds'),
-};
+  // Late-bound constants from API module
+  let FLAGS, WC26_GROUPS, TEAM_RATINGS, SQUADS,
+      TODAY_MATCHES, SCHEDULE, PAST_RESULTS,
+      fetchLiveMatches, fetchGroupStandings, generateStandings;
 
-/* ─────────────────────────────────────────────────────────────────── */
-/* State                                                                */
-/* ─────────────────────────────────────────────────────────────────── */
-let state = {
-  activeTab:      'today',
-  scheduleGroup:  'ALL',
-  standingsGroup: 'A',
-  liveMatches:    [],
-  standings:      {},
-};
+  let predict, tournamentOdds;
+
+  function bindAPI() {
+    const api = window.LW26API;
+    const pre = window.LW26Predict;
+    if (!api || !pre) return false;
+
+    FLAGS = api.FLAGS;
+    WC26_GROUPS = api.WC26_GROUPS;
+    TEAM_RATINGS = api.TEAM_RATINGS;
+    SQUADS = api.SQUADS;
+    TODAY_MATCHES = api.TODAY_MATCHES;
+    SCHEDULE = api.SCHEDULE;
+    PAST_RESULTS = api.PAST_RESULTS;
+    fetchLiveMatches = api.fetchLiveMatches;
+    fetchGroupStandings = api.fetchGroupStandings;
+    generateStandings = api.generateStandings;
+
+    predict = pre.predict;
+    tournamentOdds = pre.tournamentOdds;
+    return true;
+  }
 
 /* ─────────────────────────────────────────────────────────────────── */
 /* Helpers                                                              */
@@ -491,6 +514,11 @@ els.runPredict.addEventListener('click', renderPrediction);
 /* Init                                                                 */
 /* ─────────────────────────────────────────────────────────────────── */
 async function init() {
+  if (!bindAPI()) {
+    console.error('LW26: API or Predict modules not found');
+    return;
+  }
+
   // Header date
   const now = new Date();
   els.todayDate.textContent = now.toLocaleDateString('en-US',
@@ -540,3 +568,5 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+})();
