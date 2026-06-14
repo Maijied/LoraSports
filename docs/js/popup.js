@@ -485,11 +485,11 @@ function renderTournamentOdds() {
 /* ─────────────────────────────────────────────────────────────────── */
 /* Init                                                                 */
 /* ─────────────────────────────────────────────────────────────────── */
-async function init() {
+function init() {
   console.log('LW26: Init started');
   // Visual debug
   const debugBar = document.createElement('div');
-  debugBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:2px;background:#00ff88;z-index:9999;';
+  debugBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:4px;background:#00ff88;z-index:9999;';
   document.body.appendChild(debugBar);
 
   els = {
@@ -573,20 +573,15 @@ async function init() {
   renderTournamentOdds();
 
   // Auto-refresh today matches every 60 s when live games exist
-  setInterval(async () => {
-    try {
-      const matches = await fetchLiveMatches();
+  setInterval(() => {
+    fetchLiveMatches().then(matches => {
       state.liveMatches = matches;
       renderToday(matches);
       setUpdateTime();
-    } catch { /* silent */ }
+    }).catch(() => {});
   }, 60_000);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+init();
 
 })();
